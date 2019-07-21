@@ -1,0 +1,3 @@
+limpieza vector aux en crearRevolucion
+añadir posibilidad de que el primer y ultimo vertice se encuentren en el eje y
+añadido metodo para crear una esfera por revolucion

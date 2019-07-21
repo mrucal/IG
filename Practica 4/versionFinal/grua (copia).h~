@@ -1,0 +1,87 @@
+//**************************************************************************
+// Práctica 1
+//
+// Domingo Martin Perandres 2013
+//
+// GPL
+//**************************************************************************
+
+#include <GL/gl.h>
+#include <vector>
+#include <cmath>
+#include <assert.h>
+#include "user_code.h"
+
+using namespace std;
+
+/*********************************************************************************/
+
+class base{
+private:
+  solido *cubo;
+  
+public:
+  base(){
+    cubo = new solido();
+    construir_cubo(1,1,1,cubo);
+  }
+  /*
+  base(float anchura, float altura, float profundidad){
+    cubo = new solido();
+    construir_cubo(anchura,altura,profundidad,cubo);
+  }*/
+  
+  void draw(){
+    glPushMatrix();
+    //      glTranslatef(0.0,2.4,0.0);
+    
+    //PIEZA 1
+    glScalef(1,0.4,1);
+    glTranslatef(0.0,-2.2,0.0);
+    cubo->draw(GL_FILL,color(-1,-1,-1),0,1,color(130,0,255),2.0);
+//     glScalef(1,0.4,1);
+    
+    //PIEZA 2
+    glTranslatef(0.0,2.2,0.0);
+    glScalef(0.5,10,0.5);
+    cubo->draw(GL_FILL,color(255,0,0),0,1,color(0,255,0),2.0);
+    glPopMatrix();
+  }
+};
+
+/*********************************************************************************/
+
+class brazo{
+private:
+  solido *cubo;
+  solido *esfera;
+  
+public:
+  
+  brazo(){
+    cubo = new solido();
+//     esfera = new solido();
+    construir_cubo(4,0.6,0.6,cubo);
+//     construir_esfera(0.3,20,esfera,1);
+  }
+  /*
+  brazo(float anchura, float altura, float profundidad){
+    cubo = new solido();
+    construir_cubo(anchura,altura,profundidad,cubo);
+  }*/
+  
+  void draw(){
+    glPushMatrix();
+    //PIEZA 3
+    glTranslatef(-(2-0.3),2.3,0.0);
+    cubo->draw(GL_FILL,color(0,0,255),0,1,color(0,0,0),2.0);
+    //PIEZA 4
+    glTranslatef(((4*0.75)/2)+2,-3*(0.6*0.25)/2,0.0);
+    glScalef(0.75,0.25,1);
+    cubo->draw(GL_FILL,color(0,0,255),0,1,color(0,0,0),2.0);
+//     glTranslatef(2,0.0,0.0);
+//     glRotatef(-90,0,0,1);
+//     esfera->draw(GL_FILL,color(0,255,0),0,1,color(0,0,0),2.0);
+    glPopMatrix();
+  }
+};

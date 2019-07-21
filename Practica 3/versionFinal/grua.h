@@ -1,0 +1,306 @@
+#include <GL/gl.h>
+#include <vector>
+#include <cmath>
+#include <assert.h>
+#include "user_code.h"
+#include <iostream>
+
+#define ANCHO 8.0
+#define ALTO 6.0
+#define PROFUNDIDAD 1.0
+
+#define ANCHO_BASE 1.0
+#define ALTO_BASE 4.4
+#define PROFUNDIDAD_BASE 1.0
+
+#define ANCHO_GANCHO 0.2
+#define ALTO_GANCHO 1.6
+#define PROFUNDIDAD_GANCHO 0.2
+
+#define ANCHO_BRAZO 8.0
+#define ALTO_BRAZO 3.2
+#define PROFUNDIDAD_BRAZO 0.7
+
+using namespace std;
+
+/*********************************************************************************/
+
+class base{
+private:
+  solido *cubo;
+  float an1,al1,prof1,an2,al2,prof2;
+  
+public:
+  base(float ancho, float alto,float profundidad){
+    
+    cubo = new solido();
+    construir_cubo(1.0,1.0,1.0,cubo);
+    
+    an1=(1.0/ANCHO_BASE)*ancho;
+    al1=(0.4/ALTO_BASE)*alto;
+    prof1=(1.0/PROFUNDIDAD_BASE)*profundidad;
+    an2=(0.5/ANCHO_BASE)*ancho;
+    al2=(4.0/ALTO_BASE)*alto;
+    prof2=(0.5/PROFUNDIDAD_BASE)*profundidad;
+  }
+  
+  void draw(GLenum modo,bool ajedrez, int borde, float ancho){
+    glPushMatrix();
+    
+    //PIEZA 1
+    glTranslatef(0.0,-((al1/2.0)+(al2/2.0)),0.0);
+    glScalef(an1,al1,prof1); // escalado real
+    cubo->draw(modo,color(0,0,0),ajedrez,borde,color(1,1,0),ancho);
+    glScalef(1.0/an1,1.0/al1,1.0/prof1); // para que pieza 2 no se escale con lScalef(1,0.4,1)   ((2.5 = 1/0.4))
+    glTranslatef(0.0,((al1/2.0)+(al2/2.0)),0.0);
+    
+    //PIEZA 2
+    glScalef(an2,al2,prof2);
+    cubo->draw(modo,color(1,0,0),ajedrez,borde,color(0,1,0),ancho);
+    glScalef(1.0/an2,1.0/al2,1.0/prof2);
+    
+    glPopMatrix();
+  }
+};
+
+/*********************************************************************************/
+
+class gancho{
+  
+private:
+  
+  solido *semi_esfera;
+  solido *cubo;
+  solido *esfera;
+  
+  float an8,al8,prof8,an9,al9,prof9,an10,al10,prof10;
+  float al2;
+  
+  float g3;
+  
+public:
+  
+  gancho(float ancho, float alto,float profundidad){
+    
+    semi_esfera = new solido();
+    construir_esfera(1,20,semi_esfera,2);
+    cubo = new solido();
+    construir_cubo(1,1,1,cubo);
+    esfera = new solido();
+    construir_esfera(1,20,esfera);
+    
+    an8=(0.2/ANCHO_GANCHO)*ancho;
+    al8=(0.2/ALTO_GANCHO)*alto;
+    prof8=(0.2/PROFUNDIDAD_GANCHO)*profundidad;
+    an9=(0.03/ANCHO_GANCHO)*ancho;
+    al9=(1.0/ALTO_GANCHO)*alto;
+    prof9=(0.03/PROFUNDIDAD_GANCHO)*profundidad;
+    an10=(0.2/ANCHO_GANCHO)*ancho;
+    al10=(0.2/ALTO_GANCHO)*alto;
+    prof10=(0.2/PROFUNDIDAD_GANCHO)*profundidad;
+    
+    al2=(4.0/ALTO_GANCHO)*alto;
+    
+    this->g3=al8+al9+al10;
+  }
+  
+  void draw(float &g3,GLenum modo,bool ajedrez, int borde){
+    
+    glPushMatrix();
+    
+//     glTranslatef(0.0,2.3,0.0); // para poner encima de pieza 2
+    
+    float g3aux;
+    
+     
+    if(this->g3+g3 < (al8+3*al10) ){
+
+      g3aux=(al8+3*al10);
+      g3=(al8+3*al10)-(al8+al9+al10);
+      
+    }else  if(this->g3+g3 > (al8+al2) ){
+
+      g3aux=(al8+al2);
+      g3=(al8+al2)-(al8+al9+al10);
+      
+    }
+    else
+
+      g3aux=this->g3+g3;
+
+    //PIEZA 8
+    glScalef(an8,al8,prof8);
+    semi_esfera->draw(modo,color(0.4,0.4,0.4),ajedrez,borde,color(0,0,0),1.0);
+    glScalef(1.0/an8,1.0/al8,1.0/prof8); 
+    
+    //PIEZA 9
+    glTranslatef(0.0,-((g3aux/2)),0.0); 
+    glScalef(an9,g3aux-al8*2,prof9);
+    cubo->draw(modo,color(0.2,0.6,1),ajedrez,0,color(0,0,0),2.0);
+    glScalef(1.0/an9,1.0/(g3aux-al8*2),1.0/prof9);
+    glTranslatef(0.0,((g3aux/2)),0.0);
+    
+    //PIEZA 10
+    glTranslatef(0.0,-g3aux,0.0);
+    glScalef(an10,al10,prof10); 
+    esfera->draw(modo,color(1.0,0.5,0.0),ajedrez,borde,color(0,0,0),1.0);
+    glScalef(1.0/an10,1.0/al10,1.0/prof10); 
+    glTranslatef(0.0,g3aux,0.0);
+
+    glPopMatrix();
+  }
+};
+
+/*********************************************************************************/
+
+class brazo{
+private:
+  solido *cubo;
+  solido *piramide;
+  solido *piramide2; // piramide tipo 2
+  
+  gancho *ganchoG;
+  
+  float an3,al3,prof3,an4,al4,prof4,an5,al5,prof5;
+  float an6,al6,prof6,an7,al7,prof7;
+  float an1,an8;
+  
+  float g2;
+  
+public:
+  
+  brazo(float ancho, float alto,float profundidad){
+    cubo = new solido();
+    piramide = new solido();
+    piramide2 = new solido();
+    construir_cubo(1.0,1.0,1.0,cubo);
+    construir_piramide(0.5,piramide);
+    construir_piramide(0.5,piramide2,1);
+    ganchoG=new gancho((ANCHO_GANCHO/ANCHO_BRAZO)*ancho,(ALTO_GANCHO/ALTO_BRAZO)*alto,(PROFUNDIDAD_GANCHO/PROFUNDIDAD_BRAZO)*profundidad);
+
+    an3=(4.0/ANCHO_BRAZO)*ancho;
+    al3=(0.7/ALTO_BRAZO)*alto;
+    prof3=(0.7/PROFUNDIDAD_BRAZO)*profundidad;
+    an4=(3.0/ANCHO_BRAZO)*ancho;
+    al4=((0.7/4)/ALTO_BRAZO)*alto;
+    prof4=(0.7/PROFUNDIDAD_BRAZO)*profundidad;
+    an5=(0.7/ANCHO_BRAZO)*ancho;
+    al5=(1.0/ALTO_BRAZO)*alto;
+    prof5=(0.7/PROFUNDIDAD_BRAZO)*profundidad;
+    an6=(1.0/ANCHO_BRAZO)*ancho;
+    al6=(0.8/ALTO_BRAZO)*alto;
+    prof6=(0.7/PROFUNDIDAD_BRAZO)*profundidad;
+    an7=(0.7/ANCHO_BRAZO)*ancho;
+    al7=(1.0/ALTO_BRAZO)*alto;
+    prof7=(0.7/PROFUNDIDAD_BRAZO)*profundidad;
+    
+    an1=(1.0/ANCHO_BRAZO)*ancho;
+    an8=(0.2/ANCHO_BRAZO)*ancho;
+    
+    g2=-((an3-(al3/2))-(an8));
+  }
+  
+  void draw(float &g2,float &g3, GLenum modo,color c_brazo,bool ajedrez, int borde, float ancho){
+
+    float g2aux;
+    
+    if(this->g2+g2 > -(((an1*1.5)/2)+an8) ){
+
+      g2aux=-(((an1*1.5)/2)+an8);
+      g2=((an3-(al3/2))-(an8))-(((an1*1.5)/2)+an8);
+      
+    }else  if(this->g2+g2 < -((an3-(al3/2))-(an8)) ){
+
+      g2aux=-((an3-(al3/2))-(an8));
+      g2=0;
+      
+    }
+    else
+
+      g2aux=this->g2+g2;
+      
+    
+    glPushMatrix();
+       
+    //PIEZA 3
+    glTranslatef(-((an3/2.0)-(al3/2.0)),0.0,0.0);    // 2 (mitad pieza 3) - 0.3 (mitad pieza 2 para quedar centrado)
+    glScalef(an3,al3,prof3);
+    cubo->draw(modo,c_brazo,ajedrez,borde,color(0,0,0),ancho);
+    glScalef(1.0/an3,1.0/al3,1.0/prof3);
+    glTranslatef((an3/2.0)-(al3/2.0),0.0,0.0);
+    
+    //PIEZA 4
+    glTranslatef((an4/2.0)+(al3/2.0),-3*al4/2.0,0.0); // 1.5 (mitad pieza 4) + 0.3 (mitad pieza 2 para quedar centrado)
+    glScalef(an4,al4,prof4);
+    cubo->draw(modo,c_brazo,ajedrez,borde,color(0,0,0),ancho);
+    glScalef(1.0/an4,1.0/al4,1.0/prof4);
+    glTranslatef(-((an4/2.0)+(al3/2.0)),3*al4/2.0,0.0);
+    
+    //PIEZA 5
+    glTranslatef(0.0,(al5/2.0)+(al3/2.0),0.0);
+    glScalef(an5,al5,prof5);
+    piramide->draw(modo,c_brazo,ajedrez,borde,color(0,0,0),ancho);
+    glScalef(1.0/an5,1.0/al5,1.0/prof5);
+    glTranslatef(0.0,-((al5/2.0)+(al3/2.0)),0.0);
+    
+    //PIEZA 6
+    glTranslatef((an6/2.0)+(al3/2.0)+(((an4)*0.97)-an6),-((al6/2.0)+(al3/2.0)),0.0); // ((an4/2)*0.97) para que quede un poco antes del borde de la pieza 4
+    glScalef(an6,al6,prof6);
+    cubo->draw(modo,color(0.4,0.4,0.4),ajedrez,borde,color(0,0,0),ancho);
+    glScalef(1.0/an6,1.0/al6,1.0/prof6);
+    glTranslatef(-((an6/2.0)+(al3/2.0)+(((an4)*0.97)-an6)),(al6/2.0)+(al3/2.0),0.0);
+    
+    //PIEZA 7
+    glTranslatef(-((an3-(al3/2))+(al7/2.0)),0.0,0.0);
+    glRotatef(90,0,0,1);
+    glScalef(an7,al7,prof7);
+    piramide2->draw(modo,c_brazo,ajedrez,borde,color(0,0,0),ancho);
+    glScalef(1.0/an7,1.0/al7,1.0/prof7);
+    glRotatef(-90,0,0,1);
+    glTranslatef((an3-(al3/2))+(al7/2.0),0.0,0.0);
+    
+    //PIEZA 8-9-10
+     
+    glTranslatef(g2aux,-al3/2,0.0);
+    ganchoG->draw(g3,modo,ajedrez,borde);
+    glTranslatef(-g2aux,al3/2,0.0);
+    
+    glPopMatrix();
+    
+  }
+};
+
+class grua{
+  
+private:
+  
+  base *baseG;
+  brazo *brazoG;
+  
+  float al2,al3;
+  
+public:
+  
+  grua(float ancho, float alto,float profundidad){
+    baseG = new base((ANCHO_BASE/ANCHO)*ancho,(ALTO_BASE/ALTO)*alto,(PROFUNDIDAD_BASE/PROFUNDIDAD)*profundidad);
+    brazoG = new brazo((ANCHO_BRAZO/ANCHO)*ancho,(ALTO_BRAZO/ALTO)*alto,(PROFUNDIDAD_BRAZO/PROFUNDIDAD)*profundidad);
+    
+    al2 = ((4/ALTO)*alto);
+    al3=(0.7/ALTO)*alto;
+  }
+  
+  void draw(int g1,float &g2,float &g3,GLenum modo,color c_brazo,bool ajedrez, int borde, float ancho){
+    
+    glPushMatrix();
+    
+    baseG->draw(modo,ajedrez,borde,ancho);
+    
+    glRotatef(g1,0,1,0);
+    glTranslatef(0.0,(al2+al3)/2,0.0);
+    brazoG->draw(g2,g3,modo,c_brazo,ajedrez,borde,ancho);
+    glTranslatef(0.0,-(al2+al3)/2,0.0);
+    glRotatef(-g1,0,0,1);
+    
+    glPopMatrix();
+  }
+};

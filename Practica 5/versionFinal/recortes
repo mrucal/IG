@@ -1,0 +1,27 @@
+
+/*
+void draw_scene(void)
+{
+clear_window();
+glPushMatrix();
+glViewport(0,0,UI_window_width/2,UI_window_height/2);
+glRotatef(90,0,1,0);
+aux();
+glPopMatrix();
+glViewport(UI_window_width/2,0,UI_window_width/2,UI_window_height/2);
+aux();
+glViewport(0,UI_window_height/2,UI_window_width/2,UI_window_height/2);
+aux();
+glViewport(UI_window_width/2,UI_window_height/2,UI_window_width/2,UI_window_height/2);
+aux();
+}*/
+
+
+/*glViewport(0,0,Ancho1/2,Alto1/2);
+draw_scene();
+glViewport(Ancho1/2,0,Ancho1/2,Alto1/2);
+draw_scene();
+glViewport(0,Alto1/2,Ancho1/2,Alto1/2);
+draw_scene();
+glViewport(Ancho1/2,Alto1/2,Ancho1/2,Alto1/2);
+draw_scene();*/
